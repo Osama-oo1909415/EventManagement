@@ -18,20 +18,26 @@
                 @Html.Raw(Model.Description)
             </div>
 
-            <!-- BASIC HTML REGISTRATION FORM -->
+            <!-- REGISTRATION FORM -->
             <div class="p-4 bg-white rounded shadow-sm">
                 <h2>Register for this Event</h2>
-                <form>
+                <form id="registrationForm">
+                    <input type="hidden" id="eventId" value="@Model.Id" />
+
                     <div class="mb-3">
-                        <label for="name" class="form-label">Full Name</label>
+                        <label for="name" class="form-label">Your Name</label>
                         <input type="text" class="form-control" id="name" required>
                     </div>
+
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email Address</label>
+                        <label for="email" class="form-label">Your Email</label>
                         <input type="email" class="form-control" id="email" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Submit Registration</button>
+
+                    <button type="submit" class="btn btn-primary">Register Now</button>
                 </form>
+
+                <div id="formStatus" class="mt-3"></div>
             </div>
 
             @{
@@ -92,5 +98,53 @@
             });
             map.addLayer(marker);
         }
+
+        // Wait for the document to be fully loaded
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Get the form element from the page
+            const form = document.getElementById('registrationForm');
+
+            // Add an event listener for when the form is submitted
+            form.addEventListener('submit', function (event) {
+
+                // Prevent the form from doing a normal page refresh
+                event.preventDefault();
+
+                // Get the values from the form fields
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                const eventId = document.getElementById('eventId').value;
+
+                // The URL for our API controller
+                const apiUrl = '/umbraco/api/registration/submit';
+
+                // Send the data to the API using the fetch method
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        Name: name,
+                        Email: email,
+                        EventId: parseInt(eventId)
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Show the success or error message from the controller
+                    const formStatus = document.getElementById('formStatus');
+                    formStatus.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                    form.reset(); // Clear the form
+                })
+                .catch(error => {
+                    // Show an error message if something goes wrong
+                    console.error('Error:', error);
+                    const formStatus = document.getElementById('formStatus');
+                    formStatus.innerHTML = `<div class="alert alert-danger">An error occurred. Please try again.</div>`;
+                });
+            });
+        });
     </script>
 }
