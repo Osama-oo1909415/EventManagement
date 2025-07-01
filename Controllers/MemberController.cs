@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using Umbraco.Cms.Core.Security;
 using EventManagement.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Umbraco.Cms.Web.Common.Controllers;
@@ -6,24 +8,33 @@ using Umbraco.Cms.Web.Common.Security;
 using Umbraco.Cms.Web.Common.Models;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Core.Cache;
+using Umbraco.Cms.Core.Logging;
+using Umbraco.Cms.Core.Routing;
+using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Infrastructure.Persistence;
 
 namespace EventManagement.Web.Controllers
 {
-    public class MemberController : RenderController
+    public class MemberController : SurfaceController
     {
+        private readonly SignInManager<MemberIdentityUser> _signInManager;
         private readonly IMemberManager _memberManager;
         private readonly IMemberService _memberService;
 
         public MemberController(
-            ILogger<MemberController> logger,
-            ICompositeViewEngine compositeViewEngine,
             IUmbracoContextAccessor umbracoContextAccessor,
-            IMemberManager memberManager,
-            IMemberService memberService)
-            : base(logger, compositeViewEngine, umbracoContextAccessor)
+            IUmbracoDatabaseFactory databaseFactory,
+            ServiceContext services,
+            AppCaches appCaches,
+            IProfilingLogger profilingLogger,
+            IPublishedUrlProvider publishedUrlProvider,
+            SignInManager<MemberIdentityUser> signInManager,
+            IMemberManager memberManager)
+            : base(umbracoContextAccessor, databaseFactory, services, appCaches, profilingLogger, publishedUrlProvider)
         {
+            _signInManager = signInManager;
             _memberManager = memberManager;
-            _memberService = memberService;
         }
 
         [HttpPost]
@@ -68,7 +79,6 @@ namespace EventManagement.Web.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
@@ -76,17 +86,22 @@ namespace EventManagement.Web.Controllers
                 return CurrentUmbracoPage();
             }
 
-            var result = await _memberManager.PasswordSignInAsync(model.Username, model.Password, isPersistent: true, lockoutOnFailure: true);
+            // Attempt to sign in the user
+            var result = await _signInManager.PasswordSignInAsync(
+                model.Username, 
+                model.Password, 
+                isPersistent: false, 
+                lockoutOnFailure: false);
 
             if (result.Succeeded)
             {
-                return RedirectToCurrentUmbracoPage();
+                // Redirect to home page after successful login
+                return Redirect("/");
             }
-            else
-            {
-                ModelState.AddModelError("Login", "Invalid username or password");
-                return CurrentUmbracoPage();
-            }
+
+            // If we got this far, something failed
+            ModelState.AddModelError(string.Empty, "Invalid login attempt");
+            return CurrentUmbracoPage();
         }
 
         public async Task<IActionResult> Logout()
