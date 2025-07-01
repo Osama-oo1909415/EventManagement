@@ -1,34 +1,26 @@
+using EventManagement.Web.Models;
 using Microsoft.AspNetCore.Mvc;
-using Umbraco.Cms.Core.Cache;
-using Umbraco.Cms.Core.Logging;
-using Umbraco.Cms.Core.Routing;
-using Umbraco.Cms.Core.Scoping;
-using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Web.Common.Controllers;
 using Umbraco.Cms.Core.Web;
-using Umbraco.Cms.Infrastructure.Persistence;
-using Umbraco.Cms.Web.Website.Controllers;
-using Umbraco.Cms.Web.Common.Models;
 using Umbraco.Cms.Web.Common.Security;
+using Umbraco.Cms.Web.Common.Models;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.Extensions.Logging;
 
 namespace EventManagement.Web.Controllers
 {
-    public class MemberController : SurfaceController
+    public class MemberController : RenderController
     {
         private readonly IMemberManager _memberManager;
         private readonly IMemberService _memberService;
-        private readonly IEmailSender _emailSender;
-
 
         public MemberController(
+            ILogger<MemberController> logger,
+            ICompositeViewEngine compositeViewEngine,
             IUmbracoContextAccessor umbracoContextAccessor,
-            IUmbracoDatabaseFactory databaseFactory,
-            ServiceContext services,
-            AppCaches appCaches,
-            IProfilingLogger profilingLogger,
-            IPublishedUrlProvider publishedUrlProvider,
             IMemberManager memberManager,
             IMemberService memberService)
-            : base(umbracoContextAccessor, databaseFactory, services, appCaches, profilingLogger, publishedUrlProvider)
+            : base(logger, compositeViewEngine, umbracoContextAccessor)
         {
             _memberManager = memberManager;
             _memberService = memberService;
@@ -102,5 +94,19 @@ namespace EventManagement.Web.Controllers
             await _memberManager.SignOutAsync();
             return RedirectToCurrentUmbracoPage();
         }
+    }
+
+    public class RegisterViewModel
+    {
+        public string Name { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string ConfirmPassword { get; set; }
+    }
+
+    public class LoginViewModel
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
     }
 }

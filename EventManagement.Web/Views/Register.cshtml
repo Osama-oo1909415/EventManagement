@@ -1,6 +1,40 @@
-﻿@using Umbraco.Cms.Web.Common.PublishedModels;
-@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.Register>
-@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+
 @{
-	Layout = null;
+    Layout = "_Layout";
+    var model = new RegisterViewModel();
+}
+
+<h1>Register</h1>
+
+@Html.ValidationSummary("Registration", new { @class = "text-danger" })
+
+@* WORKAROUND: Use controller name string instead of type *@
+@using (Html.BeginUmbracoForm("Register", "Member", FormMethod.Post))
+{
+    <div class="mb-3">
+        <label for="Name" class="form-label">Full Name</label>
+        @Html.TextBoxFor(m => model.Name, new { @class = "form-control", placeholder = "Enter your name" })
+        @Html.ValidationMessageFor(m => model.Name, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="mb-3">
+        <label for="Email" class="form-label">Email address</label>
+        @Html.TextBoxFor(m => model.Email, new { @class = "form-control", type = "email", placeholder = "Enter your email" })
+        @Html.ValidationMessageFor(m => model.Email, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="mb-3">
+        <label for="Password" class="form-label">Password</label>
+        @Html.PasswordFor(m => model.Password, new { @class = "form-control", placeholder = "Enter a password" })
+        @Html.ValidationMessageFor(m => model.Password, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="mb-3">
+        <label for="ConfirmPassword" class="form-label">Confirm Password</label>
+        @Html.PasswordFor(m => model.ConfirmPassword, new { @class = "form-control", placeholder = "Confirm your password" })
+        @Html.ValidationMessageFor(m => model.ConfirmPassword, "", new { @class = "text-danger" })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Register</button>
 }
