@@ -5,6 +5,7 @@ builder.CreateUmbracoBuilder()
     .AddWebsite()
     .AddDeliveryApi()
     .AddComposers()
+    .AddMembersIdentity() // Add this line
     .Build();
 
 WebApplication app = builder.Build();

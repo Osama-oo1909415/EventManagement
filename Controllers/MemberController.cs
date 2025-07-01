@@ -1,13 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Umbraco.Cms.Core.Security;
 using EventManagement.Web.Models;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Umbraco.Cms.Web.Common.Controllers;
 using Umbraco.Cms.Core.Web;
-using Umbraco.Cms.Web.Common.Security;
-using Umbraco.Cms.Web.Common.Models;
-using Microsoft.AspNetCore.Mvc.ViewEngines;
-using Microsoft.Extensions.Logging;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Logging;
 using Umbraco.Cms.Core.Routing;
@@ -16,7 +13,7 @@ using Umbraco.Cms.Infrastructure.Persistence;
 
 namespace EventManagement.Web.Controllers
 {
-    public class MemberController : SurfaceController
+    public class MemberController : RenderController
     {
         private readonly SignInManager<MemberIdentityUser> _signInManager;
         private readonly IMemberManager _memberManager;
@@ -86,7 +83,7 @@ namespace EventManagement.Web.Controllers
                 return CurrentUmbracoPage();
             }
 
-            // Attempt to sign in the user
+            // Attempt to sign in
             var result = await _signInManager.PasswordSignInAsync(
                 model.Username, 
                 model.Password, 
@@ -95,11 +92,9 @@ namespace EventManagement.Web.Controllers
 
             if (result.Succeeded)
             {
-                // Redirect to home page after successful login
                 return Redirect("/");
             }
 
-            // If we got this far, something failed
             ModelState.AddModelError(string.Empty, "Invalid login attempt");
             return CurrentUmbracoPage();
         }
